@@ -17,12 +17,7 @@ br.set_handle_robots( False )
 image_counter = 1
 
 links = [
-    'https://www.eleconomista.es/ecomotor/clasificacion/cabrio',
-    'https://www.eleconomista.es/ecomotor/clasificacion/berlina',
-    'https://www.eleconomista.es/ecomotor/clasificacion/coupe',
-    'https://www.eleconomista.es/ecomotor/clasificacion/4x4',
-    'https://www.eleconomista.es/ecomotor/clasificacion/familia',
-    'https://www.eleconomista.es/ecomotor/clasificacion/monovolumen'
+    "https://www.eleconomista.es/ecomotor/marcas/"
     ]
 
 def clean_html(raw_html):
@@ -46,7 +41,7 @@ def dump_json():
     with open('data.json', 'w') as outfile:
         json.dump(final_json, outfile)
 
-def process_car(link, brand, type):
+def process_car(link, brand, type, extra_info):
 
     # sleep(10)
     
@@ -58,7 +53,7 @@ def process_car(link, brand, type):
     soup = BeautifulSoup(response3, 'html.parser')
     try:
         car_entry['brand'] = brand
-        car_entry['type'] = type
+        # car_entry['type'] = type
         car_entry['model'] = soup.find('h1').text
     
         images = soup.find_all('ul', {"class": "slides"})
@@ -110,14 +105,25 @@ def process_model(link, brand, type):
         response2 = br.open(link).read()
         soup = BeautifulSoup(response2, 'html.parser')
         div_versions = soup.find('div', {"class": "ft-versiones"})
-        versions = [ i.get('href') for i in div_versions.find_all('a', {"itemprop": "url"}) ]
+        versions = [ i for i in div_versions.find_all('a', {"itemprop": "url"}) ]
+        
+        extra_info = ''
+        extra_info += soup.find('div', {"class": "c_comun"}).text
+        print(extra_info)
+        extra_info += '\n'
 
         for i in versions:
-            if i[0] != '#':
-                print(i)
-                image_count = process_car(i, brand, type)
-                break
-    except:
+            print(i)
+            if i.get("href")[0] != '#':
+                try:
+                    extra_info += i.find('div', {"class": "subdiviciones"}).text
+                    print(extra_info)
+                except:
+                    pass
+                process_car(i.get("href"), brand, type, extra_info)
+    
+    except Exception as e:
+        print(e)
         pass
 
 for link in links:
