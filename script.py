@@ -48,11 +48,11 @@ def dump_json():
         json.dump(final_json, outfile)
 
 def process_car(link, brand, image_count):
-    
+
     sleep(10)
-    
+
     car_entry = {}
-    
+
     response3 = br.open(base_url + link).read()
     soup = BeautifulSoup(response3, 'html.parser')
 
@@ -133,7 +133,5 @@ for link in links:
     for idx,cars in enumerate(lists):
         for car_link in cars.find_all('a'):
             process_model(car_link.get('href'), clean_brands[idx], 1)
-            break
-        break
-        
+
     dump_json()
