@@ -106,16 +106,19 @@ def process_car(link, brand):
         pass
 
 def process_model(link, brand):
-    response2 = br.open(link).read()
-    soup = BeautifulSoup(response2, 'html.parser')
-    div_versions = soup.find('div', {"class": "ft-versiones"})
-    versions = [ i.get('href') for i in div_versions.find_all('a', {"itemprop": "url"}) ]
-    
-    for i in versions:
-        if i[0] != '#':
-            print(i)
-            image_count = process_car(i, brand)
-            break
+    try:
+        response2 = br.open(link).read()
+        soup = BeautifulSoup(response2, 'html.parser')
+        div_versions = soup.find('div', {"class": "ft-versiones"})
+        versions = [ i.get('href') for i in div_versions.find_all('a', {"itemprop": "url"}) ]
+
+        for i in versions:
+            if i[0] != '#':
+                print(i)
+                image_count = process_car(i, brand)
+                break
+    except:
+        pass
 
 for link in links:
     response = br.open(link).read()
