@@ -57,52 +57,53 @@ def process_car(link, brand):
 
     response3 = br.open(base_url + link).read()
     soup = BeautifulSoup(response3, 'html.parser')
+    try:
+        car_entry['brand'] = brand
+        car_entry['model'] = soup.find('h1').text
+    
+        images = soup.find_all('ul', {"class": "slides"})
+    
+        equipamiento = soup.find('ul', {"id": "equipamiento"})
+        prestaciones = soup.find('ul', {"id": "prestaciones"})
+    
+        data_equipamiento = equipamiento.find_all('table', {"class": "flat-table flat-table-1"})
+        data_prestaciones = prestaciones.find_all('table', {"class": "flat-table flat-table-1"})
+    
+        image_data = []
+    
+        for i in images:
+            imgs = i.find_all('img')
+            for i in imgs:
+                img_url = i.get('src')
+                if img_url[:2] == '//':
+                    img_url = 'https:' + img_url
+                os.makedirs(f'images/{brand}', exist_ok=True)
+                try:
+                    br.retrieve(img_url, f'images/{brand}/{image_counter}.jpg')
+                    image_data.append(f'images/{brand}/{image_counter}.jpg')
+                    image_counter += 1
+                except Exception as e: 
+                    print(str(e))
+    
+        car_entry['images'] = image_data
 
-    car_entry['brand'] = brand
-    car_entry['model'] = soup.find('h1').text
+        for i in data_equipamiento+data_prestaciones:
+            # print(i)
+            header = i.find('h2').text
+            car_entry[header] = {}
 
-    images = soup.find_all('ul', {"class": "slides"})
+            table_data = i.find_all('tr')
+            for j in table_data:
+                k = j.find_all('th')
+                k += j.find_all('td')
+                if k[0] == '':
+                    car_entry[header][k[1].text] = k[2].text
+                else:
+                    car_entry[header][k[0].text] = k[1].text
 
-    equipamiento = soup.find('ul', {"id": "equipamiento"})
-    prestaciones = soup.find('ul', {"id": "prestaciones"})
-
-    data_equipamiento = equipamiento.find_all('table', {"class": "flat-table flat-table-1"})
-    data_prestaciones = prestaciones.find_all('table', {"class": "flat-table flat-table-1"})
-
-    image_data = []
-
-    for i in images:
-        imgs = i.find_all('img')
-        for i in imgs:
-            img_url = i.get('src')
-            if img_url[:2] == '//':
-                img_url = 'https:' + img_url
-            os.makedirs(f'images/{brand}', exist_ok=True)
-            try:
-                br.retrieve(img_url, f'images/{brand}/{image_counter}.jpg')
-                image_data.append(f'images/{brand}/{image_counter}.jpg')
-                image_counter += 1
-            except Exception as e: 
-                print(str(e))
-
-    car_entry['images'] = image_data
-
-    for i in data_equipamiento+data_prestaciones:
-        # print(i)
-        header = i.find('h2').text
-        car_entry[header] = {}
-
-        table_data = i.find_all('tr')
-        for j in table_data:
-            k = j.find_all('th')
-            k += j.find_all('td')
-            if k[0] == '':
-                car_entry[header][k[1].text] = k[2].text
-            else:
-                car_entry[header][k[0].text] = k[1].text
-                
-    final_json.append(car_entry)
-
+        final_json.append(car_entry)
+    except:
+        pass
 
 def process_model(link, brand):
     response2 = br.open(link).read()
