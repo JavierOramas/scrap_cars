@@ -14,6 +14,8 @@ br = Browser()
 # Ignore robots.txt
 br.set_handle_robots( False )
 
+image_counter = 1
+
 links = [
     'https://www.eleconomista.es/ecomotor/clasificacion/cabrio',
     'https://www.eleconomista.es/ecomotor/clasificacion/berlina',
@@ -28,8 +30,6 @@ def clean_html(raw_html):
     cleanr = re.compile('<.*?>')
     cleantext = re.sub(cleanr, '', raw_html)
     return cleantext
-
-
 
 # links = ['https://www.eleconomista.es/ecomotor/clasificacion/cabrio']
 
@@ -47,9 +47,11 @@ def dump_json():
     with open('data.json', 'w') as outfile:
         json.dump(final_json, outfile)
 
-def process_car(link, brand, image_count):
+def process_car(link, brand):
 
-    sleep(10)
+    # sleep(10)
+    
+    global image_counter
 
     car_entry = {}
 
@@ -77,11 +79,11 @@ def process_car(link, brand, image_count):
                 img_url = 'https:' + img_url
             os.makedirs(f'images/{brand}', exist_ok=True)
             try:
-                br.retrieve(img_url, f'images/{brand}/{image_count}.jpg')
-                image_data.append(f'images/{brand}/{image_count}.jpg')
-                image_count += 1
-            except:
-                pass
+                br.retrieve(img_url, f'images/{brand}/{image_counter}.jpg')
+                image_data.append(f'images/{brand}/{image_counter}.jpg')
+                image_counter += 1
+            except Exception as e: 
+                print(str(e))
 
     car_entry['images'] = image_data
 
@@ -100,9 +102,9 @@ def process_car(link, brand, image_count):
                 car_entry[header][k[0].text] = k[1].text
                 
     final_json.append(car_entry)
-    return image_count
 
-def process_model(link, brand, image_count):
+
+def process_model(link, brand):
     response2 = br.open(link).read()
     soup = BeautifulSoup(response2, 'html.parser')
     div_versions = soup.find('div', {"class": "ft-versiones"})
@@ -111,7 +113,7 @@ def process_model(link, brand, image_count):
     for i in versions:
         if i[0] != '#':
             print(i)
-            image_count = process_car(i, brand, image_count)
+            image_count = process_car(i, brand)
             break
 
 for link in links:
@@ -132,6 +134,6 @@ for link in links:
     
     for idx,cars in enumerate(lists):
         for car_link in cars.find_all('a'):
-            process_model(car_link.get('href'), clean_brands[idx], 1)
+            process_model(car_link.get('href'), clean_brands[idx])
 
     dump_json()
