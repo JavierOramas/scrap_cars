@@ -6,6 +6,7 @@ import requests
 import re
 import os
 import json
+from time import sleep
 
 from mechanize import Browser
 br = Browser()
@@ -47,6 +48,8 @@ def dump_json():
         json.dump(final_json, outfile)
 
 def process_car(link, brand, image_count):
+    
+    sleep(10)
     
     car_entry = {}
     
