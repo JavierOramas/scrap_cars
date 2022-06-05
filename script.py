@@ -53,7 +53,7 @@ def process_car(link, brand, type, extra_info):
     soup = BeautifulSoup(response3, 'html.parser')
     try:
         car_entry['brand'] = brand
-        # car_entry['type'] = type
+        car_entry['extra_info'] = extra_info
         car_entry['model'] = soup.find('h1').text
     
         images = soup.find_all('ul', {"class": "slides"})
