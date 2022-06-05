@@ -20,7 +20,6 @@ links = [
     'https://www.eleconomista.es/ecomotor/clasificacion/cabrio',
     'https://www.eleconomista.es/ecomotor/clasificacion/berlina',
     'https://www.eleconomista.es/ecomotor/clasificacion/coupe',
-    'https://www.eleconomista.es/ecomotor/clasificacion/berlina',
     'https://www.eleconomista.es/ecomotor/clasificacion/4x4',
     'https://www.eleconomista.es/ecomotor/clasificacion/familia',
     'https://www.eleconomista.es/ecomotor/clasificacion/monovolumen'
@@ -47,7 +46,7 @@ def dump_json():
     with open('data.json', 'w') as outfile:
         json.dump(final_json, outfile)
 
-def process_car(link, brand):
+def process_car(link, brand, type):
 
     # sleep(10)
     
@@ -59,6 +58,7 @@ def process_car(link, brand):
     soup = BeautifulSoup(response3, 'html.parser')
     try:
         car_entry['brand'] = brand
+        car_entry['type'] = type
         car_entry['model'] = soup.find('h1').text
     
         images = soup.find_all('ul', {"class": "slides"})
@@ -105,7 +105,7 @@ def process_car(link, brand):
     except:
         pass
 
-def process_model(link, brand):
+def process_model(link, brand, type):
     try:
         response2 = br.open(link).read()
         soup = BeautifulSoup(response2, 'html.parser')
@@ -115,7 +115,7 @@ def process_model(link, brand):
         for i in versions:
             if i[0] != '#':
                 print(i)
-                image_count = process_car(i, brand)
+                image_count = process_car(i, brand, type)
                 break
     except:
         pass
@@ -135,9 +135,11 @@ for link in links:
         clean_brands.append(clean_html(str(i)))
 
     lists = cars_list.find_all('div', {"class": "li-versiones"})
+    type = link.split('/')[-1]
+    print(type)
     
     for idx,cars in enumerate(lists):
         for car_link in cars.find_all('a'):
-            process_model(car_link.get('href'), clean_brands[idx])
+            process_model(car_link.get('href'), clean_brands[idx], type)
 
-    dump_json()
+dump_json()
